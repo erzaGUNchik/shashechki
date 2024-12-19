@@ -303,23 +303,9 @@ def play_game():
 
                 if board.selected_checker:
                     # Перемещение шашки
-                    can_capture_next_move = False
-
-                    # Проверяем возможность захвата в следующем ходе.
-                    for row in board.board:
-                        for target_checker in row:
-                            if target_checker and target_checker.color != board.selected_checker.color and \
-                                    board.is_valid_move(board.selected_checker, target_checker.x, target_checker.y):
-                                can_capture_next_move = True
-
-                    # Перемещение шашки
                     if board.is_valid_move(board.selected_checker, x, y):
-                        captured_piece_exists = board.make_move(board.selected_checker, x, y)
+                        board.make_move(board.selected_checker, x, y)
                         board.selected_checker = None
-
-                        # Если была захвачена шашка и есть возможность захвата следующей шашки - игрок получает дополнительный ход.
-                        if captured_piece_exists or can_capture_next_move:
-                            continue
 
                         board.current_player = 'black' if board.current_player == 'white' else 'white'
                     else:
