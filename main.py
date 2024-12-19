@@ -111,6 +111,7 @@ class Board:
             return True
 
         else:
+            # Обычная шашка может двигаться только вперед по диагонали
             if checker.color == 'white' and to_y > checker.y:
                 return False
 
@@ -133,16 +134,19 @@ class Board:
         return False
 
     def make_move(self, checker, to_x, to_y):
-        step_count = max(abs(to_x - checker.x), abs(to_y - checker.y))
+        captured_checker_exists = False
 
+        # Проверка на захват шашки.
         if abs(to_x - checker.x) == 2:
             middle_x = (checker.x + to_x) // 2
             middle_y = (checker.y + to_y) // 2
 
             middle_checker = self.board[middle_y][middle_x]
             if middle_checker:
+                captured_checker_exists = True
                 self.board[middle_y][middle_x] = None
 
+        # Перемещение шашки на новую позицию.
         self.board[to_y][to_x] = checker
         self.board[checker.y][checker.x] = None
 
@@ -150,6 +154,8 @@ class Board:
 
         # Проверяем необходимость превращения в дамку после движения.
         checker.make_king()
+
+        return captured_checker_exists  # Возвращаем информацию о захвате.
 
     def get_checker_at(self, x, y):
         if 0 <= x < GRID_SIZE and 0 <= y < GRID_SIZE:
@@ -297,9 +303,24 @@ def play_game():
 
                 if board.selected_checker:
                     # Перемещение шашки
+                    can_capture_next_move = False
+
+                    # Проверяем возможность захвата в следующем ходе.
+                    for row in board.board:
+                        for target_checker in row:
+                            if target_checker and target_checker.color != board.selected_checker.color and \
+                                    board.is_valid_move(board.selected_checker, target_checker.x, target_checker.y):
+                                can_capture_next_move = True
+
+                    # Перемещение шашки
                     if board.is_valid_move(board.selected_checker, x, y):
-                        board.make_move(board.selected_checker, x, y)
+                        captured_piece_exists = board.make_move(board.selected_checker, x, y)
                         board.selected_checker = None
+
+                        # Если была захвачена шашка и есть возможность захвата следующей шашки - игрок получает дополнительный ход.
+                        if captured_piece_exists or can_capture_next_move:
+                            continue
+
                         board.current_player = 'black' if board.current_player == 'white' else 'white'
                     else:
                         board.selected_checker = None
