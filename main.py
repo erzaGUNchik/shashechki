@@ -25,10 +25,10 @@ font = pygame.font.SysFont("Arial", 30)
 # Класс для представления шашки
 class Checker:
     def __init__(self, color, x, y):
-        self.color = color  # Цвет шашки ('white' или 'black')
-        self.x = x  # Координата x на доске
-        self.y = y  # Координата y на доске
-        self.king = False  # Статус дамки
+        self.color = color
+        self.x = x
+        self.y = y
+        self.king = False
 
     def make_king(self):
         if (self.color == 'white' and self.y == 0) or (self.color == 'black' and self.y == GRID_SIZE - 1):
@@ -39,14 +39,11 @@ class Checker:
         center_y = self.y * CELL_SIZE + CELL_SIZE // 2
         color = WHITE if self.color == 'white' else BLACK
 
-        # Рисуем обводку для выбранной шашки
         if selected:
             pygame.draw.circle(screen, SELECTED_COLOR, (center_x, center_y), CELL_SIZE // 3 + 5)
 
-        # Рисуем саму шашку
         pygame.draw.circle(screen, color, (center_x, center_y), CELL_SIZE // 3)
 
-        # Рисуем корону для дамки
         if self.king:
             pygame.draw.circle(screen, (255, 215, 0), (center_x, center_y), CELL_SIZE // 6)
 
@@ -60,7 +57,6 @@ class Board:
         self.create_checkers()
 
     def create_checkers(self):
-        # Размещение начальных шашек
         for y in range(3):
             for x in range((y + 1) % 2, GRID_SIZE, 2):
                 self.board[y][x] = Checker('black', x, y)
@@ -70,13 +66,11 @@ class Board:
                 self.board[y][x] = Checker('white', x, y)
 
     def draw(self, screen):
-        # Рисуем доску
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 color = LIGHT_BROWN if (x + y) % 2 == 0 else DARK_BROWN
                 pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-        # Рисуем шашки
         for row in self.board:
             for checker in row:
                 if checker:
@@ -84,16 +78,13 @@ class Board:
                     checker.draw(screen, selected)
 
     def is_valid_move(self, checker, to_x, to_y):
-        # Проверка на выход за пределы поля
         if not (0 <= to_x < GRID_SIZE and 0 <= to_y < GRID_SIZE):
             return False
 
-        # Проверка на наличие шашки своего цвета на целевой клетке
         target = self.board[to_y][to_x]
         if target is not None:
             return False
 
-        # Проверка на правильность движения шашки
         dx = abs(to_x - checker.x)
         dy = abs(to_y - checker.y)
 
@@ -101,7 +92,6 @@ class Board:
             return False
 
         if checker.king:
-            # Дамка может перемещаться на любое расстояние по диагонали и захватывать шашки
             step_x = (to_x - checker.x) // dx if dx != 0 else 0
             step_y = (to_y - checker.y) // dy if dy != 0 else 0
 
@@ -110,9 +100,7 @@ class Board:
                 middle_y = checker.y + i * step_y
 
                 middle_checker = self.board[middle_y][middle_x]
-
                 if middle_checker and middle_checker.color != checker.color:
-                    # Проверяем наличие пустой клетки после вражеской шашки для захвата
                     after_x = middle_x + step_x
                     after_y = middle_y + step_y
                     if (0 <= after_x < GRID_SIZE and
@@ -123,7 +111,6 @@ class Board:
             return True
 
         else:
-            # Обычная шашка может двигаться только вперед по диагонали
             if checker.color == 'white' and to_y > checker.y:
                 return False
 
@@ -138,11 +125,7 @@ class Board:
                 middle_y = (checker.y + to_y) // 2
 
                 middle_checker = self.board[middle_y][middle_x]
-
                 if middle_checker and middle_checker.color != checker.color:
-                    after_x = (checker.x + to_x) // 2
-                    after_y = (checker.y + to_y) // 2
-
                     target_after_jump = self.board[to_y][to_x]
                     if target_after_jump is None:
                         return True
@@ -150,8 +133,6 @@ class Board:
         return False
 
     def make_move(self, checker, to_x, to_y):
-        # Выполнение перемещения с удалением побитой шашки при необходимости
-
         step_count = max(abs(to_x - checker.x), abs(to_y - checker.y))
 
         if abs(to_x - checker.x) == 2:
@@ -161,26 +142,6 @@ class Board:
             middle_checker = self.board[middle_y][middle_x]
             if middle_checker:
                 self.board[middle_y][middle_x] = None
-
-                # Обработка перемещения дамки с возможностью захвата нескольких шашек подряд.
-
-        if checker.king and step_count > 1:
-            step_x = (to_x - checker.x) // step_count
-            step_y = (to_y - checker.y) // step_count
-
-            for i in range(1, step_count):
-                current_x = checker.x + i * step_x
-                current_y = checker.y + i * step_y
-
-                if i < step_count - 1:
-                    middle_checker = self.board[current_y][current_x]
-                    if middle_checker and middle_checker.color != checker.color:
-                        after_x = current_x + step_x
-                        after_y = current_y + step_y
-                        if (0 <= after_x < GRID_SIZE and
-                                0 <= after_y < GRID_SIZE and
-                                not self.board[after_y][after_x]):
-                            self.board[current_y][current_x] = None
 
         self.board[to_y][to_x] = checker
         self.board[checker.y][checker.x] = None
@@ -206,24 +167,70 @@ def draw_menu(screen):
     screen.fill(WHITE)
 
     title_text = font.render("Checkers Game", True, BLACK)
-    play_button_text = font.render("Play", True, BLACK)
+    play_button_text = font.render("Играть", True, BLACK)
+    stats_button_text = font.render("Статистика", True, BLACK)
 
     title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 4))
-    button_rect = play_button_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    play_button_rect = play_button_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 30))
+    stats_button_rect = stats_button_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 30))
 
-    button_color_current = BUTTON_COLOR
+    button_color_current_play = BUTTON_COLOR
+    button_color_current_stats = BUTTON_COLOR
 
     mouse_pos = pygame.mouse.get_pos()
 
-    if button_rect.collidepoint(mouse_pos):
-        button_color_current = BUTTON_HOVER_COLOR
+    if play_button_rect.collidepoint(mouse_pos):
+        button_color_current_play = BUTTON_HOVER_COLOR
+
+    if stats_button_rect.collidepoint(mouse_pos):
+        button_color_current_stats = BUTTON_HOVER_COLOR
 
     pygame.draw.rect(screen,
-                     button_color_current,
-                     button_rect.inflate(20, 20))
+                     button_color_current_play,
+                     play_button_rect.inflate(20, 20))
+
+    pygame.draw.rect(screen,
+                     button_color_current_stats,
+                     stats_button_rect.inflate(20, 20))
 
     screen.blit(title_text, title_rect)
-    screen.blit(play_button_text, button_rect)
+    screen.blit(play_button_text, play_button_rect)
+    screen.blit(stats_button_text, stats_button_rect)
+
+
+def show_statistics():
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Статистика")
+
+    running = True
+
+    # Чтение результатов из файла и отображение их на экране.
+    with open("game_results.txt", "r") as file:
+        results_lines = file.readlines()
+
+    while running:
+        screen.fill(WHITE)
+
+        title_text = font.render("Статистика", True, BLACK)
+
+        screen.blit(title_text, title_text.get_rect(center=(WIDTH // 2, HEIGHT // 4)))
+
+        # Отображение результатов.
+        for i, line in enumerate(results_lines):
+            result_text = font.render(line.strip(), True, BLACK)
+            screen.blit(result_text, result_text.get_rect(center=(WIDTH // 2, HEIGHT // 4 + (i + 1) * 30)))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            elif event.type == pygame.KEYDOWN:
+                # Закрытие окна статистики по нажатию клавиши.
+                running = False
+
+    main_menu()  # Возвращаемся в главное меню после закрытия окна статистики.
 
 
 def main_menu():
@@ -233,8 +240,8 @@ def main_menu():
     running = True
 
     while running:
-
         draw_menu(screen)
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -243,15 +250,27 @@ def main_menu():
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                play_button_rect = pygame.Rect(WIDTH // 2 - 70, HEIGHT // 2 - 30, 140, 60)
+
+                play_button_rect = pygame.Rect(WIDTH // 2 - 70,
+                                               HEIGHT // 2 - 30,
+                                               140,
+                                               60)
+
+                stats_button_rect = pygame.Rect(WIDTH // 2 - 70,
+                                                HEIGHT // 2 + 30,
+                                                140,
+                                                60)
+
                 if play_button_rect.collidepoint(mouse_pos):
                     play_game()
+
+                elif stats_button_rect.collidepoint(mouse_pos):
+                    show_statistics()  # Показать статистику.
 
     pygame.quit()
     sys.exit()
 
 
-# Основная функция игры
 def play_game():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Checkers")
@@ -261,7 +280,6 @@ def play_game():
     running = True
 
     while running:
-
         screen.fill((255, 255, 255))
         board.draw(screen)
 
@@ -275,7 +293,6 @@ def play_game():
                 x, y = event.pos
                 x //= CELL_SIZE
                 y //= CELL_SIZE
-
                 checker = board.get_checker_at(x, y)
 
                 if board.selected_checker:
@@ -291,12 +308,17 @@ def play_game():
                     board.selected_checker = checker
 
             if board.is_game_over():
-                print(f"Game Over! {board.current_player} wins!")
+                winner_color = board.current_player
+                print(f"Game Over! {winner_color} wins!")
+
+                # Сохранение результата в файл
+                with open("game_results.txt", "a") as file:
+                    file.write(f"{winner_color} wins!\n")
+
                 running = False
 
-    pygame.quit()
-    sys.exit()
+    main_menu()  # Возвращаемся в главное меню после завершения игры.
 
 
-# Запуск игры с главного меню
-main_menu()
+if __name__ == "__main__":
+    main_menu()
